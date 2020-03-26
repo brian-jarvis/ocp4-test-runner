@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: tester-cm
-#  namespace: openshift-test-runner
+  namespace: openshift-test-runner
 data:
   build.tester.sh: |-
     #!/usr/bin/bash
