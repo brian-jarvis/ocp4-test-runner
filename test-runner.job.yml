@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: openshift-tester
+  namespace: openshift-test-runner
+  labels:
+    ocp-tester: ocp-e2e
+spec:
+  template:
+    metadata:
+      name: openshift-tester
+      labels:
+        ocp-tester: ocp-e2e
+    spec:
+      initContainers:
+        - name: ocp-tester-builder
+          command: 
+              - /bin/build.tester.sh
+          env:
+            - name: gitBranch
+              value: "release-4.3"
+            - name: gitRepo
+              value: "https://github.com/openshift/origin.git"
+          image: registry.redhat.io/ubi8/go-toolset:latest
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: outpath
+              mountPath: "/tmp/tester-bin"
+            - name: configmap-volume
+              mountPath: /bin/build.tester.sh
+              readOnly: true
+              subPath: build.tester.sh
+      containers:
+        - name: test-runner
+          image: registry.redhat.io/openshift4/ose-cli:v4.3
+          command:
+            - /usr/bin/bash
+            - '-c'
+          args:
+            - >
+              echo check if we have a valid file to run the tester
+              ls -l /tmp/tester-bin
+          volumeMounts:
+          - name: outpath
+            mountPath: "/tmp/tester-bin"
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Never
+      serviceAccountName: ocp-tester
+      volumes:
+        - name: outpath
+          emptydir: {}
+        - name: configmap-volume
+          configMap:
+            defaultMode: 0777
+            name: tester-cm
