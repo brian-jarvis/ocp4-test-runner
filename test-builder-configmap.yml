@@ -8,13 +8,18 @@ data:
     #!/usr/bin/bash
 
     export GOPATH=/tmp/go
-    wkDir=${GOPATH}/src/github.com/origin
+    wkDir=${GOPATH}/src/github.com
+    
+    echo "setting up working directory ${wkDir}"
     mkdir -p ${wkDir}
     cd ${wkDir}
 
-    ## the depth makes the checkout faster by not bringing all of the history.
-    git clone --depth=1 --branch ${gitBranch} ${gitRepo} ./
+    echo "checking out ${gitRepo} on branch ${gitBranch}"
+    git clone --branch ${gitBranch} ${gitRepo}
 
+    cd origin
+
+    echo "Building openshift-tests"
     make build WHAT=cmd/openshift-tests
 
-    cp ${wkDir}/_output/local/bin/linux/$(go env GOARCH)/openshift-tests /tmp/tester-bin/openshift-tests
+    cp ${wkDir}/origin/_output/local/bin/linux/$(go env GOARCH)/openshift-tests /tmp/tester-bin/openshift-tests
